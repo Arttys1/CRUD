@@ -15,13 +15,21 @@ type DB struct {
 	_handle *sql.DB
 }
 
-func (db *DB) Init() {
+type Config struct {
+	User         string
+	Password     string
+	Address      string
+	Port         string
+	DatabaseName string
+}
+
+func (db *DB) Init(config Config) {
 	cfg := mysql.Config{
-		User:                 "root",
-		Passwd:               "",
+		User:                 config.User,
+		Passwd:               config.Password,
+		Addr:                 config.Address + ":" + config.Port,
+		DBName:               config.DatabaseName,
 		Net:                  "tcp",
-		Addr:                 "127.0.0.1:3306",
-		DBName:               "bestiole",
 		AllowNativePasswords: true,
 	}
 	// Get a database handle.
@@ -40,6 +48,10 @@ func (db *DB) Init() {
 	fmt.Println("Connected!")
 }
 
+/**
+ * function to ping the database and check if it is alive.
+ * @return true if the database respond, false otherwise.
+ */
 func (db *DB) Ping() bool {
 	err := db._handle.Ping()
 	if err != nil {

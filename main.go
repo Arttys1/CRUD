@@ -6,13 +6,21 @@ import (
 )
 
 func main() {
-	var db = db.DB{}
+	var (
+		database db.DB
+		config   = db.Config{
+			User:         "root",
+			Password:     "",
+			DatabaseName: "bestiole",
+			Address:      "127.0.0.1",
+			Port:         "3306",
+		}
+	)
 
-	defer db.Close()
+	database.Init(config)
+	defer database.Close()
 
-	db.Init()
-
-	var animals []animal.Animal = animal.GetAllAnimals(&db)
+	var animals []animal.Animal = animal.GetAllAnimals(&database)
 
 	animal.DisplayAll(animals)
 }
