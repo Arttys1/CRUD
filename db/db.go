@@ -6,7 +6,6 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/go-sql-driver/mysql"
 )
@@ -36,14 +35,12 @@ func (db *DB) Init(config Config) {
 	var err error
 	db._handle, err = sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
-		log.Fatal(err)
-		return
+		panic(err)
 	}
 
 	pingErr := db._handle.Ping()
 	if pingErr != nil {
-		log.Fatal(pingErr)
-		return
+		panic(pingErr)
 	}
 	fmt.Println("Connected!")
 }
@@ -55,7 +52,7 @@ func (db *DB) Init(config Config) {
 func (db *DB) Ping() bool {
 	err := db._handle.Ping()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 		return false
 	}
 	return true

@@ -8,7 +8,6 @@ import (
 	"CRUD/db"
 	"database/sql"
 	"fmt"
-	"log"
 )
 
 type Animal interface {
@@ -29,7 +28,7 @@ func UpdateAnimalInDB(database *db.DB, animal Animal) {
 	query += fmt.Sprintf("WHERE id = %d;", animal.ID())
 	_, err := database.Exec(query)
 	if err != nil {
-		log.Fatal(query, "\n", err)
+		panic(query + "\n" + err.Error())
 	}
 }
 
@@ -37,30 +36,27 @@ func DeleteAnimalInDB(database *db.DB, id int32) {
 	query := "DELETE FROM animal WHERE id = " + fmt.Sprintf("%d;", id)
 	_, err := database.Exec(query)
 	if err != nil {
-		log.Fatal(query, "\n", err)
+		panic(query + "\n" + err.Error())
 	}
 }
 
 func AddAnimalInDB(database *db.DB, animal Animal) {
-	var (
-		id    int32 = getMaxIDFromDB(database) + 1
-		query string
-	)
-	query = "INSERT INTO animal (id, nom, sexe, espece_id) VALUES ("
-	query += fmt.Sprintf("%d, ", id)
+	query := "INSERT INTO animal (id, nom, sexe, espece_id) VALUES ("
+	query += fmt.Sprintf("%d, ", animal.ID())
 	query += fmt.Sprintf("'%s', ", animal.Name())
 	query += fmt.Sprintf("'%c', ", animal.Sexe())
 	query += fmt.Sprintf("(SELECT id FROM espece WHERE espece = '%s'));", animal.Espece())
+
 	_, err := database.Exec(query)
 	if err != nil {
-		log.Fatal(query, "\n", err)
+		panic(query + "\n" + err.Error())
 	}
 }
 
-func getMaxIDFromDB(database *db.DB) int32 {
+func GetMaxIDFromDB(database *db.DB) int32 {
 	rows, err := database.Query("SELECT MAX(id) FROM animal;")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer rows.Close()
 	rows.Next()
@@ -76,7 +72,7 @@ func GetAnimal(database *db.DB, id int32) Animal {
 		"WHERE animal.id = " + fmt.Sprintf("%d;", id))
 
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer rows.Close()
 
@@ -84,7 +80,7 @@ func GetAnimal(database *db.DB, id int32) Animal {
 	if rows.Next() {
 		animal = loadAnimal(rows)
 	} else {
-		log.Fatal("No animal found with id: ", id)
+		panic(fmt.Sprintf("Animal with id %d not found", id))
 	}
 
 	return animal
@@ -95,7 +91,7 @@ func GetAllAnimals(database *db.DB) []Animal {
 		"FROM animal JOIN espece " +
 		"ON animal.espece_id = espece.id order by id;")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer rows.Close()
 
@@ -118,7 +114,7 @@ func loadAnimal(rows *sql.Rows) Animal {
 	)
 	err := rows.Scan(&id, &name, &sexe, &espece)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	switch espece {
 	case "cat":
@@ -146,7 +142,7 @@ func loadAnimal(rows *sql.Rows) Animal {
 			_sexe: sexe[0],
 		}
 	default:
-		log.Fatal("Unknown espece. id : ", id)
+		panic(fmt.Sprintf("Unknown espece. id : %d", id))
 	}
 
 	return animal
